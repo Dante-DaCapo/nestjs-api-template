@@ -12,8 +12,14 @@ export class PinService {
     private readonly fetchUrlService: FetchUrlService,
   ) {}
 
-  findById(id: number): Promise<Pin> {
-    return this.pinRepository.findOneBy({ id });
+  findByIdAndUserId(id: number, userId: number): Promise<Pin> {
+    return this.pinRepository.findOneBy({ id, userId });
+  }
+
+  findAllByUserId(userId: number): Promise<Pin[]> {
+    console.log(userId);
+    console.log("HEHO");
+    return this.pinRepository.findBy({ userId: userId });
   }
 
   async deleteById(id: number): Promise<void> {
