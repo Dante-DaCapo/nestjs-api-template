@@ -4,10 +4,12 @@ import {
   Get,
   Param,
   Post,
+  UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
 import { CreateUserDto } from '../dto/createUser.dto';
 import { UsersService } from '../services/users.service';
+import { AccessTokenGuard } from 'src/auth/guards/auth.guard';
 
 @Controller('users')
 export class UsersController {
@@ -19,6 +21,7 @@ export class UsersController {
   }
 
   @Get(':id')
+  @UseGuards(AccessTokenGuard)
   async getConnectedUser(@Param('id') id: number) {
     await this.usersService.findById(id);
   }

@@ -31,6 +31,12 @@ export class UsersService {
     await this.usersRepository.delete({ id });
   }
 
+  async update(userId: number, updateUser: Partial<User>): Promise<User> {
+    const user = await this.findById(userId);
+    Object.assign(user, updateUser);
+    return this.usersRepository.save(user);
+  }
+
   async create(createUserDto: CreateUserDto): Promise<User> {
     const checkUser = await this.findByEmail(createUserDto.email);
     if (checkUser) {
