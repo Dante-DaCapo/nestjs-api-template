@@ -3,13 +3,32 @@ import { AuthController } from "./controllers/auth.controller";
 import { AuthService } from "./services/auth.service";
 import { UsersModule } from "src/users/users.module";
 import { JwtModule } from "@nestjs/jwt";
-import { AccessTokenStrategy } from "./strategies/accessToken.strategy";
-import { RefreshTokenStrategy } from "./strategies/refreshToken.strategy";
+import { ConfigService } from "@nestjs/config";
+import { AuthGuard } from "./guards/auth.guard";
+import { APP_GUARD } from "@nestjs/core";
 
 @Module({
-  imports: [UsersModule, JwtModule.register({})],
+  imports: [
+    UsersModule,
+    JwtModule.registerAsync({
+      useFactory: (config: ConfigService) => {
+        return {
+          secret: config.get<string>("JWT_KEY"),
+          signOptions: {
+            expiresIn: "30m",
+          },
+        };
+      },
+      inject: [ConfigService],
+    }),
+  ],
   controllers: [AuthController],
-  providers: [AuthService, AccessTokenStrategy, RefreshTokenStrategy],
-  exports: [AuthService]
+  providers: [
+    AuthService,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
+  ],
 })
 export class AuthModule {}

@@ -1,4 +1,4 @@
-import { IsArray, IsString, IsUrl } from "class-validator";
+import { IsNumber, IsOptional, IsString, IsUrl } from "class-validator";
 
 export class CreatePinDto {
   @IsString()
@@ -13,6 +13,7 @@ export class CreatePinDto {
   @IsUrl()
   sourceUrl: string;
 
-  @IsArray()
-  tags: string[];
+  @IsNumber()
+  @IsOptional()
+  userId: number;
 }

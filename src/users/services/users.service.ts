@@ -27,12 +27,6 @@ export class UsersService {
     await this.usersRepository.softDelete({ id });
   }
 
-  async update(userId: number, updateUser: Partial<User>): Promise<User> {
-    const user = await this.findById(userId);
-    Object.assign(user, updateUser);
-    return this.usersRepository.save(user);
-  }
-
   async delete(id: number): Promise<void> {
     await this.usersRepository.delete({ id });
   }

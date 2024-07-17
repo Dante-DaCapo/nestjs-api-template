@@ -1,14 +1,4 @@
-import { Exclude } from "class-transformer";
-import {
-  Column,
-  Entity,
-  ManyToMany,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from "typeorm";
-import { Tag } from "./tag";
-import { User } from "src/users/entities/user.entity";
-import { PinDto } from "../dto/PinDto";
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Pin {
@@ -27,28 +17,10 @@ export class Pin {
   @Column()
   sourceUrl: string;
 
-  @ManyToOne(() => User, (user) => user.pins)
-  user: User;
-
   @Column()
-  @Exclude()
-  searchString: string;
+  userId: number;
 
-  @ManyToMany(() => Tag, (tag) => tag.pins, {
-    cascade: true,
-    eager: true,
-    onDelete: "CASCADE",
-  })
-  tags: Tag[];
-
-  toDto(): PinDto {
-    const pinDto = new PinDto();
-    pinDto.id = this.id;
-    pinDto.title = this.title;
-    pinDto.description = this.description;
-    pinDto.imageUrl = this.imageUrl;
-    pinDto.sourceUrl = this.sourceUrl;
-    pinDto.tags = this.tags.map((tag) => tag.name);
-    return pinDto;
+  constructor(pin: Partial<Pin>) {
+    Object.assign(this, pin);
   }
 }

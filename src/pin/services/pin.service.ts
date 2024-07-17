@@ -1,74 +1,39 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
 import { Pin } from "../entities/pin";
 import { FetchUrlService } from "../contracts/FetchUrlService";
 import { CreatePinDto } from "../dto/CreatePinDto";
-import { User } from "src/users/entities/user.entity";
-import { Tag } from "../entities/tag";
-import {
-  PIN_REPOSITORY,
-  PinRepositoryPort,
-} from "../database/pin.repository.port";
 
 @Injectable()
 export class PinService {
   constructor(
-    @Inject(PIN_REPOSITORY)
-    private readonly pinRepository: PinRepositoryPort,
-    private readonly fetchUrlService: FetchUrlService
+    @InjectRepository(Pin) private readonly pinRepository: Repository<Pin>,
+    private readonly fetchUrlService: FetchUrlService,
   ) {}
 
-  findByIdAndUser(id: number, user: User): Promise<Pin> {
-    return this.pinRepository.findOneByUserAndId(id, user);
+  findByIdAndUserId(id: number, userId: number): Promise<Pin> {
+    return this.pinRepository.findOneBy({ id, userId });
   }
 
-  findAllByUser(user: User): Promise<Pin[]> {
-    return this.pinRepository.findAllByUser(user);
+  findAllByUserId(userId: number): Promise<Pin[]> {
+    console.log(userId);
+    console.log("HEHO");
+    return this.pinRepository.findBy({ userId: userId });
   }
 
-  searchPins(search: string, user: User): Promise<Pin[]> {
-    return this.pinRepository.searchByString(search, user);
+  async deleteById(id: number): Promise<void> {
+    await this.pinRepository.delete(id);
   }
 
-  async deleteByIdAndUser(id: number, user: User): Promise<void> {
-    const pin: Pin = await this.findByIdAndUser(id, user);
-    if (!pin) {
-      throw new Error("Pin not found for user. Cannot perform delete");
-    }
-    return this.pinRepository.deleteById(pin.id);
+  async createPin(createPinDto: CreatePinDto): Promise<void> {
+    const pin = new Pin(createPinDto);
+    await this.pinRepository.save(pin);
   }
 
-  createPin(createPinDto: CreatePinDto, user: User): Promise<Pin> {
-    const pin = this.createPinFromDto(createPinDto, user);
-    return this.pinRepository.persitsPin(pin);
-  }
-
-  extractDataFromUrl(
-    url: string
+  async extractDataFromUrl(
+    url: string,
   ): Promise<{ description: string; title: string; imageUrl: string }> {
-    return this.fetchUrlService.getPageFromUrl(url);
-  }
-
-  createPinFromDto(createPinDto: CreatePinDto, user: User): Pin {
-    const pin = new Pin();
-    pin.title = createPinDto.title;
-    pin.description = createPinDto.description;
-    pin.imageUrl = createPinDto.imageUrl;
-    pin.sourceUrl = createPinDto.sourceUrl;
-    pin.searchString = `${createPinDto.title.toLowerCase()} ${createPinDto.description.toLowerCase()}`;
-    pin.user = user;
-    pin.tags = createPinDto.tags.map((tagName) => {
-      const existingTag = user.tags?.find(
-        (userTag) => userTag.name === tagName
-      );
-      if (existingTag) {
-        return existingTag;
-      } else {
-        const newTag = new Tag();
-        newTag.name = tagName;
-        newTag.user = user;
-        return newTag;
-      }
-    });
-    return pin;
+    return await this.fetchUrlService.getPageFromUrl(url);
   }
 }
