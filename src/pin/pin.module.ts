@@ -6,19 +6,37 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { AxiosCheerioFetchUrlService } from "./services/AxiosCheerioFetchUrlService";
 import { FetchUrlService } from "./contracts/FetchUrlService";
 import { TestFetchUrlService } from "./tests/TestFetchUrlService";
+import { ConfigService } from "@nestjs/config";
+import { Tag } from "./entities/tag";
+import { TagService } from "./services/tag.service";
+import { PIN_REPOSITORY } from "./database/pin.repository.port";
+import { PinRepository } from "./database/pin.repository";
+import { TagController } from "./controllers/tag.controller";
 
 const fetchUrlServiceProvider = {
   provide: FetchUrlService,
-  useClass:
-    process.env.NODE_ENV === "development" ||
-    process.env.NODE_ENV === "production"
-      ? AxiosCheerioFetchUrlService
-      : TestFetchUrlService,
+  useFactory: (configService: ConfigService) => {
+    const environment = configService.get<string>("NODE_ENV");
+    return environment === "development" || environment === "production"
+      ? new AxiosCheerioFetchUrlService()
+      : new TestFetchUrlService();
+  },
+  inject: [ConfigService],
+};
+
+const databaseRepositoryProvider = {
+  provide: PIN_REPOSITORY,
+  useClass: PinRepository,
 };
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Pin])],
-  controllers: [PinController],
-  providers: [PinService, fetchUrlServiceProvider],
+  imports: [TypeOrmModule.forFeature([Pin, Tag])],
+  controllers: [PinController, TagController],
+  providers: [
+    PinService,
+    fetchUrlServiceProvider,
+    TagService,
+    databaseRepositoryProvider,
+  ],
 })
 export class PinModule {}

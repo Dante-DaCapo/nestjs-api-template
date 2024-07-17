@@ -1,6 +1,9 @@
-import { IsArray, IsString, IsUrl } from "class-validator";
+import { IsArray, IsNumber, IsString, IsUrl } from "class-validator";
 
-export class CreatePinDto {
+export class PinDto {
+  @IsNumber()
+  id: number;
+
   @IsString()
   title: string;
 
